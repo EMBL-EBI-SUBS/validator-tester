@@ -21,6 +21,10 @@ repositories {
 }
 
 dependencies {
+    compile("org.springframework.boot:spring-boot-starter-amqp")
+    compile group: 'uk.ac.ebi.subs', name: 'subs-data-model', version: '1.0.0-SNAPSHOT'
+    compile group: 'uk.ac.ebi.subs', name: 'subs-processing-model', version: '1.0.0-SNAPSHOT'
+
     compile group: 'org.springframework.boot', name: 'spring-boot-starter'
-    compile 'com.github.EMBL-EBI-SUBS:validator-prototype:master'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 }
