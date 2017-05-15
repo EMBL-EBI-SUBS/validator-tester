@@ -16,9 +16,15 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
-    //maven { url 'https://jitpack.io' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
+    compile("org.springframework.boot:spring-boot-starter-amqp")
+    compile group: 'uk.ac.ebi.subs', name: 'subs-data-model', version: '1.0.0-SNAPSHOT'
+    compile group: 'uk.ac.ebi.subs', name: 'subs-processing-model', version: '1.0.0-SNAPSHOT'
+
     compile group: 'org.springframework.boot', name: 'spring-boot-starter'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 }
