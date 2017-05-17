@@ -1,6 +1,7 @@
 package uk.ac.ebi.subs.validator.tester;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -17,6 +18,7 @@ import uk.ac.ebi.subs.validator.tester.submissions.SubmissionPublisher;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @EnableAutoConfiguration
+@Category(RabbitMQDependentTest.class)
 public class PublishOneSubmissionTest {
 
     @Autowired
