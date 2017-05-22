@@ -12,8 +12,10 @@ import uk.ac.ebi.subs.data.component.Team;
 import uk.ac.ebi.subs.data.submittable.Sample;
 import uk.ac.ebi.subs.processing.SubmissionEnvelope;
 
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * This is a utility class for publishing submissions to a defined queue.
@@ -76,7 +78,7 @@ public class SubmissionPublisher {
         List<Submission> submissions = createSubmissions(count);
 
         for (Submission submission: submissions) {
-            List<Sample> samples = createSamplesForASubmission();
+            List<Sample> samples = createSampleForASubmission();
 
             SubmissionEnvelope submissionEnvelope = new SubmissionEnvelope(submission);
             submissionEnvelope.setSamples(samples);
@@ -97,13 +99,11 @@ public class SubmissionPublisher {
         return submissions;
     }
 
-    private List<Sample> createSamplesForASubmission() {
+    private List<Sample> createSampleForASubmission() {
         List<Sample> samples = new ArrayList<>();
 
-        for (int i = 0; i < ThreadLocalRandom.current().nextInt(10, 101); i++) {
-            Sample sample = createSample();
-            samples.add(sample);
-        }
+        Sample sample = createSample();
+        samples.add(sample);
 
         return samples;
     }
