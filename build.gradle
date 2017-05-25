@@ -27,6 +27,8 @@ dependencies {
 
     compile group: 'org.springframework.boot', name: 'spring-boot-starter'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+
+    testCompile 'com.github.EMBL-EBI-SUBS:validator-prototype:master-SNAPSHOT'
 }
 
 task('externalCiTest', type: Test) {
