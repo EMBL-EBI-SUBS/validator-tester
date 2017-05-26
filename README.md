@@ -17,6 +17,17 @@ Please don't run all the tests in one go. They are not unit tests, they are spec
 
 #### Test cases
 
+##### Prerequisites:
+
+- You have to start the validator-prototype micro services:
+  - validation-coordinator app
+  - validators
+  - validation-aggregator app
+  - validation-status-flipper app
+
+- You also need to have a running RabbitMQ and MongoDB instance.
+
+
 1. Generate and publish only one submission for validation
 <br><br>`$ gradle -Dtest.single=PublishOneSubmissionTest test`
 
