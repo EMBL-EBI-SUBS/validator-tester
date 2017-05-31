@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import uk.ac.ebi.subs.data.submittable.Sample;
 import uk.ac.ebi.subs.processing.SubmissionEnvelope;
+import uk.ac.ebi.subs.validator.data.SubmittableValidationEnvelope;
 import uk.ac.ebi.subs.validator.tester.submissions.SubmissionPublisher;
 import uk.ac.ebi.subs.validator.tester.utils.ValidationOutcomeProperties;
 
@@ -37,7 +39,7 @@ public class PublishManySubmissionsTest {
     @Autowired
     SubmissionPublisher publisher;
 
-    private Map<String, SubmissionEnvelope> publishedSubmissions = new HashMap<>();
+    private List<String> publishedSubmissionIds = new ArrayList<>();
 
     private Map<String, ValidationOutcomeProperties> submissionsToCheck = new LinkedHashMap<>();
 
@@ -45,19 +47,22 @@ public class PublishManySubmissionsTest {
     public void createAndPublishManySubmissionAndRandomlyUpdatesThem() throws IOException {
         int numberOfSubmissionsToCreate = 20;
         int updateNthSubmission = 3;
-        List<SubmissionEnvelope> submissionEnvelopes = publisher.createManySubmissionsToPublish(numberOfSubmissionsToCreate);
+        List<SubmittableValidationEnvelope<Sample>> submittableEnvelopes =
+                publisher.createManySubmissionsToPublish(numberOfSubmissionsToCreate);
         int publishedCount = 0;
-        for (SubmissionEnvelope submissionEnvelope: submissionEnvelopes) {
-            publisher.publishASubmisssionEnvelope(submissionEnvelope);
+        for (SubmittableValidationEnvelope submittableEnvelope: submittableEnvelopes) {
+            publisher.publishASubmittableEnvelope(submittableEnvelope, SubmissionPublisher.SUBMISSION_CREATED_ROUTING_KEY);
 
-            publishedSubmissions.put(submissionEnvelope.getSubmission().getId(), submissionEnvelope);
+            publishedSubmissionIds.add(submittableEnvelope.getSubmissionId());
 
-            populateSubmissionsToCheck(submissionEnvelope);
+            populateSubmissionsToCheck(submittableEnvelope);
 
             // update every 'Nth' submission after published 5
             if (++publishedCount > 5 && (publishedCount % updateNthSubmission == 0)) {
-                SubmissionEnvelope updatedSubmissionEnvelopToPublish = publisher.updateSubmission(getRandomPublishedSubmission());
-                publisher.publishASubmisssionEnvelope(updatedSubmissionEnvelopToPublish);
+                SubmittableValidationEnvelope<Sample> updatedSubmissionEnvelopToPublish =
+                        publisher.updateSubmission(getRandomPublishedSubmission());
+                publisher.publishASubmittableEnvelope(updatedSubmissionEnvelopToPublish,
+                        SubmissionPublisher.SUBMISSION_UPDATED_ROUTING_KEY);
 
                 updateSubmissionsToCheck(updatedSubmissionEnvelopToPublish);
             }
@@ -66,28 +71,24 @@ public class PublishManySubmissionsTest {
         generateSubmissionsResultFile();
     }
 
-    private SubmissionEnvelope getRandomPublishedSubmission() {
-        List<String> publishedSubmissionIds = new ArrayList<>(publishedSubmissions.keySet());
-
-        String randomKey = publishedSubmissionIds.get(ThreadLocalRandom.current().nextInt(0, publishedSubmissionIds.size()));
-
-        return publishedSubmissions.get(randomKey);
+    private String getRandomPublishedSubmission() {
+        return publishedSubmissionIds.get(ThreadLocalRandom.current().nextInt(0, publishedSubmissionIds.size()));
     }
 
-    private void populateSubmissionsToCheck(SubmissionEnvelope submissionEnvelope) {
-        String submissionUuid = getSubmissionId(submissionEnvelope);
+    private void populateSubmissionsToCheck(SubmittableValidationEnvelope<Sample> submittableEnvelope) {
+        String submissionUuid = getSubmissionId(submittableEnvelope);
         ValidationOutcomeProperties outcomeProperties =
-                new ValidationOutcomeProperties(submissionEnvelope.getSamples().get(0).getId());
+                new ValidationOutcomeProperties(submittableEnvelope.getEntityToValidate().getId());
 
         submissionsToCheck.put(submissionUuid, outcomeProperties);
     }
 
-    private String getSubmissionId(SubmissionEnvelope submissionEnvelope) {
-        return submissionEnvelope.getSubmission().getId();
+    private String getSubmissionId(SubmittableValidationEnvelope submittableEnvelope) {
+        return submittableEnvelope.getSubmissionId();
     }
 
-    private void updateSubmissionsToCheck(SubmissionEnvelope submissionEnvelope) {
-        String submissionUuid = getSubmissionId(submissionEnvelope);
+    private void updateSubmissionsToCheck(SubmittableValidationEnvelope<Sample> submittableEnvelope) {
+        String submissionUuid = getSubmissionId(submittableEnvelope);
 
         ValidationOutcomeProperties propertiesToUpdate = submissionsToCheck.get(submissionUuid);
         propertiesToUpdate.incrementVersion();

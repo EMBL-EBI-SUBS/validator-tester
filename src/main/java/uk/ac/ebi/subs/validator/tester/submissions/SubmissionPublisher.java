@@ -11,9 +11,9 @@ import uk.ac.ebi.subs.data.component.Submitter;
 import uk.ac.ebi.subs.data.component.Team;
 import uk.ac.ebi.subs.data.submittable.Sample;
 import uk.ac.ebi.subs.processing.SubmissionEnvelope;
+import uk.ac.ebi.subs.validator.data.SubmittableValidationEnvelope;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,6 +32,7 @@ public class SubmissionPublisher {
 
     public static final String SUBMISSION_EXCHANGE = "usi-1:submission-exchange";
     public static final String SUBMISSION_CREATED_ROUTING_KEY = "usi.submission.created";
+    public static final String SUBMISSION_UPDATED_ROUTING_KEY = "usi.submission.updated";
 
     private static Logger logger = LoggerFactory.getLogger(SubmissionPublisher.class);
 
@@ -47,65 +48,56 @@ public class SubmissionPublisher {
         this.testTeam = Team.build("Test team");
     }
 
-    public SubmissionEnvelope createASubmissionToPublish() {
-        return createSubmissionEnvelopes(1).get(0);
+    public SubmittableValidationEnvelope createASubmissionToPublish() {
+        return createSubmittableEnvelopes(1).get(0);
     }
 
-    public List<SubmissionEnvelope> createManySubmissionsToPublish(int numberOfSubmissionsToCreate) {
-        return createSubmissionEnvelopes(numberOfSubmissionsToCreate);
+    public List<SubmittableValidationEnvelope<Sample>> createManySubmissionsToPublish(int numberOfSubmissionsToCreate) {
+        return createSubmittableEnvelopes(numberOfSubmissionsToCreate);
     }
 
-    public void publishASubmisssionEnvelope(SubmissionEnvelope submissionEnvelope) {
-        rabbitMessagingTemplate.convertAndSend(SUBMISSION_EXCHANGE, SUBMISSION_CREATED_ROUTING_KEY, submissionEnvelope);
+    public void publishASubmittableEnvelope(SubmittableValidationEnvelope submittableEnvelope, String routingKey) {
+        rabbitMessagingTemplate.convertAndSend(SUBMISSION_EXCHANGE, routingKey, submittableEnvelope);
 
-        logger.debug("Submission id: {} has been published.", submissionEnvelope.getSubmission().getId());
+        logger.debug("Submission id: {} has been published.", submittableEnvelope.getSubmissionId());
     }
 
-    public SubmissionEnvelope updateSubmission(SubmissionEnvelope randomPublishedSubmissionEnvelope) {
-        Submission submissionToUpdate = randomPublishedSubmissionEnvelope.getSubmission();
+    public SubmittableValidationEnvelope<Sample> updateSubmission(String submissionId) {
 
-        submissionToUpdate.setSubmitter(Submitter.build("UPDATED__" + submissionToUpdate.getSubmitter()));
+        SubmittableValidationEnvelope<Sample> submittableValidationEnvelope = createSubmittableSampleValidationEnvelope(submissionId);
 
-        randomPublishedSubmissionEnvelope.setSubmission(submissionToUpdate);
+        logger.debug("Submission id: {} has been updated.", submissionId);
 
-        logger.debug("Submission id: {} has been updated.", submissionToUpdate.getId());
-
-        return randomPublishedSubmissionEnvelope;
+        return submittableValidationEnvelope;
     }
 
-    private List<SubmissionEnvelope> createSubmissionEnvelopes(int count) {
-        List<SubmissionEnvelope> submissionEnvelopes = new ArrayList<>();
-        List<Submission> submissions = createSubmissions(count);
+    private List<SubmittableValidationEnvelope<Sample>> createSubmittableEnvelopes(int count) {
+        List<SubmittableValidationEnvelope<Sample>> submittableValidationEnvelopes = new ArrayList<>();
+        List<String> submissionIds = createSubmissions(count);
 
-        for (Submission submission: submissions) {
-            List<Sample> samples = createSampleForASubmission();
-
-            SubmissionEnvelope submissionEnvelope = new SubmissionEnvelope(submission);
-            submissionEnvelope.setSamples(samples);
-            submissionEnvelopes.add(submissionEnvelope);
+        for (String submissionId: submissionIds) {
+            SubmittableValidationEnvelope<Sample> submittableValidationEnvelope = createSubmittableSampleValidationEnvelope(submissionId);
+            submittableValidationEnvelopes.add(submittableValidationEnvelope);
         }
 
-        return submissionEnvelopes;
+        return submittableValidationEnvelopes;
     }
 
-    private List<Submission> createSubmissions(int count) {
+    private SubmittableValidationEnvelope<Sample> createSubmittableSampleValidationEnvelope(String submissionId) {
+        Sample sample = createSample();
 
-        List<Submission> submissions = new ArrayList<>();
+        return new SubmittableValidationEnvelope<>(submissionId, sample);
+    }
+
+    private List<String> createSubmissions(int count) {
+
+        List<String> submissionIds = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
-            submissions.add(createSubmission(String.valueOf(i)));
+            submissionIds.add("testSubmission" + String.valueOf(i));
         }
 
-        return submissions;
-    }
-
-    private List<Sample> createSampleForASubmission() {
-        List<Sample> samples = new ArrayList<>();
-
-        Sample sample = createSample();
-        samples.add(sample);
-
-        return samples;
+        return submissionIds;
     }
 
     private Sample createSample() {
@@ -120,15 +112,5 @@ public class SubmissionPublisher {
         sample.setTeam(testTeam);
 
         return sample;
-    }
-
-    private Submission createSubmission(String id) {
-        Submission submission = new Submission();
-        submission.setId("testSubmission" + id);
-        submission.setSubmissionDate(new Date());
-        submission.setSubmitter(Submitter.build("test" + id + "@email.com"));
-        submission.setTeam(Team.build("testTeam" + id));
-
-        return submission;
     }
 }
