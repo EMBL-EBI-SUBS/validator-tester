@@ -28,7 +28,7 @@ dependencies {
     compile group: 'org.springframework.boot', name: 'spring-boot-starter'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 
-    compile 'com.github.EMBL-EBI-SUBS:validator-prototype:SUBS-453-refactor_prototype_to_use_validatorenvelopes-SNAPSHOT'
+    compile 'com.github.EMBL-EBI-SUBS:validator-prototype:master-SNAPSHOT'
 }
 
 task('externalCiTest', type: Test) {
