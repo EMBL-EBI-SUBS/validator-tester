@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import uk.ac.ebi.subs.processing.SubmissionEnvelope;
+import uk.ac.ebi.subs.validator.data.SubmittableValidationEnvelope;
 import uk.ac.ebi.subs.validator.tester.submissions.SubmissionPublisher;
 
 /**
@@ -26,7 +26,7 @@ public class PublishOneSubmissionTest {
 
     @Test
     public void createAndPublishASubmission() {
-        SubmissionEnvelope submissionEnvelope = publisher.createASubmissionToPublish();
-        publisher.publishASubmisssionEnvelope(submissionEnvelope);
+        SubmittableValidationEnvelope submissionEnvelope = publisher.createASubmissionToPublish();
+        publisher.publishASubmittableEnvelope(submissionEnvelope, SubmissionPublisher.SUBMISSION_CREATED_ROUTING_KEY);
     }
 }
