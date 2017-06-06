@@ -62,13 +62,9 @@ public class SubmissionPublisher {
         logger.debug("Submission id: {} has been published.", submittableEnvelope.getSubmissionId());
     }
 
-    public SubmittableValidationEnvelope<Sample> updateSubmission(String submissionId) {
-
-        SubmittableValidationEnvelope<Sample> submittableValidationEnvelope = createSubmittableSampleValidationEnvelope(submissionId);
-
-        logger.debug("Submission id: {} has been updated.", submissionId);
-
-        return submittableValidationEnvelope;
+    // This is just a fake update. It should be enough for us to test the version change.
+    public void updateSubmission(SubmittableValidationEnvelope envelopeToUpdate) {
+        logger.debug("Submission id: {} has been updated.", envelopeToUpdate.getSubmissionId());
     }
 
     private List<SubmittableValidationEnvelope<Sample>> createSubmittableEnvelopes(int count) {

@@ -38,7 +38,7 @@ public class PublishManySubmissionsTest {
     @Autowired
     SubmissionPublisher publisher;
 
-    private List<String> publishedSubmissionIds = new ArrayList<>();
+    private List<SubmittableValidationEnvelope> publishedEnvelopes = new ArrayList<>();
 
     private Map<String, ValidationResultProperties> submissionsToCheck = new LinkedHashMap<>();
 
@@ -52,14 +52,14 @@ public class PublishManySubmissionsTest {
         for (SubmittableValidationEnvelope submittableEnvelope: submittableEnvelopes) {
             publisher.publishASubmittableEnvelope(submittableEnvelope, SubmissionPublisher.SUBMISSION_CREATED_ROUTING_KEY);
 
-            publishedSubmissionIds.add(submittableEnvelope.getSubmissionId());
+            publishedEnvelopes.add(submittableEnvelope);
 
             populateSubmissionsToCheck(submittableEnvelope);
 
             // update every 'Nth' submission after published 5
             if (++publishedCount > 5 && (publishedCount % updateNthSubmission == 0)) {
-                SubmittableValidationEnvelope<Sample> updatedSubmissionEnvelopToPublish =
-                        publisher.updateSubmission(getRandomPublishedSubmission());
+                SubmittableValidationEnvelope<Sample> updatedSubmissionEnvelopToPublish = getRandomPublishedSubmission();
+                publisher.updateSubmission(updatedSubmissionEnvelopToPublish);
                 publisher.publishASubmittableEnvelope(updatedSubmissionEnvelopToPublish,
                         SubmissionPublisher.SUBMISSION_UPDATED_ROUTING_KEY);
 
@@ -70,8 +70,8 @@ public class PublishManySubmissionsTest {
         generateSubmissionsResultFile();
     }
 
-    private String getRandomPublishedSubmission() {
-        return publishedSubmissionIds.get(ThreadLocalRandom.current().nextInt(0, publishedSubmissionIds.size()));
+    private SubmittableValidationEnvelope getRandomPublishedSubmission() {
+        return publishedEnvelopes.get(ThreadLocalRandom.current().nextInt(0, publishedEnvelopes.size()));
     }
 
     private void populateSubmissionsToCheck(SubmittableValidationEnvelope<Sample> submittableEnvelope) {
