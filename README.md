@@ -38,13 +38,13 @@ Please don't run all the tests in one go. They are not unit tests, they are spec
 <br><br>`$ gradle -Dtest.single=PublishManySubmissionsTest test`
       
 3. Create and publish submissions and update previously published submissions (like case 2.)
-and check the validation outcome results in the MongoDB repository
+and check the validation results in the MongoDB repository
 <br><br>`$ gradle -Dtest.single=PublishManySubmissionsTest test`
 
    You have to wait while the validation is running.
    You can monitor the processing of the messages with the RabbitMQ Manager UI.
    When it is finished you can check the results with executing this test:
-   <br><br>`$ gradle -Dtest.single=ValidationOutcomeTest test`
+   <br><br>`$ gradle -Dtest.single=ValidationResultTest test`
    
    This test reads the latest generated submission result file
    and compare its content with the documents in the MongoDB repository. 

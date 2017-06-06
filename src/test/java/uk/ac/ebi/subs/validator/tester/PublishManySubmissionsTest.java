@@ -10,10 +10,9 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.ac.ebi.subs.data.submittable.Sample;
-import uk.ac.ebi.subs.processing.SubmissionEnvelope;
 import uk.ac.ebi.subs.validator.data.SubmittableValidationEnvelope;
 import uk.ac.ebi.subs.validator.tester.submissions.SubmissionPublisher;
-import uk.ac.ebi.subs.validator.tester.utils.ValidationOutcomeProperties;
+import uk.ac.ebi.subs.validator.tester.utils.ValidationResultProperties;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +40,7 @@ public class PublishManySubmissionsTest {
 
     private List<String> publishedSubmissionIds = new ArrayList<>();
 
-    private Map<String, ValidationOutcomeProperties> submissionsToCheck = new LinkedHashMap<>();
+    private Map<String, ValidationResultProperties> submissionsToCheck = new LinkedHashMap<>();
 
     @Test
     public void createAndPublishManySubmissionAndRandomlyUpdatesThem() throws IOException {
@@ -77,10 +76,10 @@ public class PublishManySubmissionsTest {
 
     private void populateSubmissionsToCheck(SubmittableValidationEnvelope<Sample> submittableEnvelope) {
         String submissionUuid = getSubmissionId(submittableEnvelope);
-        ValidationOutcomeProperties outcomeProperties =
-                new ValidationOutcomeProperties(submittableEnvelope.getEntityToValidate().getId());
+        ValidationResultProperties validationResultProperties =
+                new ValidationResultProperties(submittableEnvelope.getEntityToValidate().getId());
 
-        submissionsToCheck.put(submissionUuid, outcomeProperties);
+        submissionsToCheck.put(submissionUuid, validationResultProperties);
     }
 
     private String getSubmissionId(SubmittableValidationEnvelope submittableEnvelope) {
@@ -90,7 +89,7 @@ public class PublishManySubmissionsTest {
     private void updateSubmissionsToCheck(SubmittableValidationEnvelope<Sample> submittableEnvelope) {
         String submissionUuid = getSubmissionId(submittableEnvelope);
 
-        ValidationOutcomeProperties propertiesToUpdate = submissionsToCheck.get(submissionUuid);
+        ValidationResultProperties propertiesToUpdate = submissionsToCheck.get(submissionUuid);
         propertiesToUpdate.incrementVersion();
 
         submissionsToCheck.put(submissionUuid, propertiesToUpdate);
