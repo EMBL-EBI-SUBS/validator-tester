@@ -3,16 +3,16 @@ package uk.ac.ebi.subs.validator.tester.utils;
 /**
  * Created by karoly on 24/05/2017.
  */
-public class ValidationOutcomeProperties {
+public class ValidationResultProperties {
 
     private String entityUuid;
     private int version;
     private boolean updated;
 
-    public ValidationOutcomeProperties() {
+    public ValidationResultProperties() {
     }
 
-    public ValidationOutcomeProperties(String entityUuid) {
+    public ValidationResultProperties(String entityUuid) {
         this.entityUuid = entityUuid;
         setUpdated(false);
         setVersion(1);

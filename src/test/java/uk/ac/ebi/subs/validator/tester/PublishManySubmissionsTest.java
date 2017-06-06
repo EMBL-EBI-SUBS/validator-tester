@@ -10,10 +10,9 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.ac.ebi.subs.data.submittable.Sample;
-import uk.ac.ebi.subs.processing.SubmissionEnvelope;
 import uk.ac.ebi.subs.validator.data.SubmittableValidationEnvelope;
 import uk.ac.ebi.subs.validator.tester.submissions.SubmissionPublisher;
-import uk.ac.ebi.subs.validator.tester.utils.ValidationOutcomeProperties;
+import uk.ac.ebi.subs.validator.tester.utils.ValidationResultProperties;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,9 +38,9 @@ public class PublishManySubmissionsTest {
     @Autowired
     SubmissionPublisher publisher;
 
-    private List<String> publishedSubmissionIds = new ArrayList<>();
+    private List<SubmittableValidationEnvelope> publishedEnvelopes = new ArrayList<>();
 
-    private Map<String, ValidationOutcomeProperties> submissionsToCheck = new LinkedHashMap<>();
+    private Map<String, ValidationResultProperties> submissionsToCheck = new LinkedHashMap<>();
 
     @Test
     public void createAndPublishManySubmissionAndRandomlyUpdatesThem() throws IOException {
@@ -53,14 +52,14 @@ public class PublishManySubmissionsTest {
         for (SubmittableValidationEnvelope submittableEnvelope: submittableEnvelopes) {
             publisher.publishASubmittableEnvelope(submittableEnvelope, SubmissionPublisher.SUBMISSION_CREATED_ROUTING_KEY);
 
-            publishedSubmissionIds.add(submittableEnvelope.getSubmissionId());
+            publishedEnvelopes.add(submittableEnvelope);
 
             populateSubmissionsToCheck(submittableEnvelope);
 
             // update every 'Nth' submission after published 5
             if (++publishedCount > 5 && (publishedCount % updateNthSubmission == 0)) {
-                SubmittableValidationEnvelope<Sample> updatedSubmissionEnvelopToPublish =
-                        publisher.updateSubmission(getRandomPublishedSubmission());
+                SubmittableValidationEnvelope<Sample> updatedSubmissionEnvelopToPublish = getRandomPublishedSubmission();
+                publisher.updateSubmission(updatedSubmissionEnvelopToPublish);
                 publisher.publishASubmittableEnvelope(updatedSubmissionEnvelopToPublish,
                         SubmissionPublisher.SUBMISSION_UPDATED_ROUTING_KEY);
 
@@ -71,16 +70,16 @@ public class PublishManySubmissionsTest {
         generateSubmissionsResultFile();
     }
 
-    private String getRandomPublishedSubmission() {
-        return publishedSubmissionIds.get(ThreadLocalRandom.current().nextInt(0, publishedSubmissionIds.size()));
+    private SubmittableValidationEnvelope getRandomPublishedSubmission() {
+        return publishedEnvelopes.get(ThreadLocalRandom.current().nextInt(0, publishedEnvelopes.size()));
     }
 
     private void populateSubmissionsToCheck(SubmittableValidationEnvelope<Sample> submittableEnvelope) {
         String submissionUuid = getSubmissionId(submittableEnvelope);
-        ValidationOutcomeProperties outcomeProperties =
-                new ValidationOutcomeProperties(submittableEnvelope.getEntityToValidate().getId());
+        ValidationResultProperties validationResultProperties =
+                new ValidationResultProperties(submittableEnvelope.getEntityToValidate().getId());
 
-        submissionsToCheck.put(submissionUuid, outcomeProperties);
+        submissionsToCheck.put(submissionUuid, validationResultProperties);
     }
 
     private String getSubmissionId(SubmittableValidationEnvelope submittableEnvelope) {
@@ -90,7 +89,7 @@ public class PublishManySubmissionsTest {
     private void updateSubmissionsToCheck(SubmittableValidationEnvelope<Sample> submittableEnvelope) {
         String submissionUuid = getSubmissionId(submittableEnvelope);
 
-        ValidationOutcomeProperties propertiesToUpdate = submissionsToCheck.get(submissionUuid);
+        ValidationResultProperties propertiesToUpdate = submissionsToCheck.get(submissionUuid);
         propertiesToUpdate.incrementVersion();
 
         submissionsToCheck.put(submissionUuid, propertiesToUpdate);
